@@ -35,7 +35,7 @@ import botocore
 import troposphere
 import troposphere.apigateway
 from botocore.exceptions import ClientError
-from xref_lambda_packages import xref_lambda_packages as lambda_packages_orig
+from xref_lambda_packages import lambda_packages as lambda_packages_orig
 from tqdm import tqdm
 
 from .utilities import (add_event_source, conflicts_with_a_neighbouring_module,
