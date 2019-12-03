@@ -24,7 +24,7 @@ with open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')) as f
     test_required = f.read().splitlines()
 
 setup(
-    name='zappa',
+    name='xrefzappa',
     version=__version__,
     packages=['zappa'],
     install_requires=required,
