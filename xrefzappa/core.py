@@ -213,7 +213,7 @@ ZIP_EXCLUDES = [
 ]
 
 # When using ALB as an event source for Lambdas, we need to create an alias
-# to ensure that, on zappa update, the ALB doesn't lose permissions to access
+# to ensure that, on xrefzappa update, the ALB doesn't lose permissions to access
 # the Lambda.
 # See: https://github.com/Miserlou/Zappa/pull/1730
 ALB_LAMBDA_ALIAS = 'current-alb-version'
@@ -398,7 +398,7 @@ class Zappa(object):
 
     def create_handler_venv(self):
         """
-        Takes the installed zappa and brings it into a fresh virtualenv-like folder. All dependencies are then downloaded.
+        Takes the installed xrefzappa and brings it into a fresh virtualenv-like folder. All dependencies are then downloaded.
         """
         import subprocess
 
@@ -418,13 +418,13 @@ class Zappa(object):
         if not os.path.isdir(venv_site_packages_dir):
             os.makedirs(venv_site_packages_dir)
 
-        # Copy zappa* to the new virtualenv
-        zappa_things = [z for z in os.listdir(current_site_packages_dir) if z.lower()[:5] == 'zappa']
+        # Copy xrefzappa* to the new virtualenv
+        zappa_things = [z for z in os.listdir(current_site_packages_dir) if z.lower()[:5] == 'xrefzappa']
         for z in zappa_things:
             copytree(os.path.join(current_site_packages_dir, z), os.path.join(venv_site_packages_dir, z))
 
-        # Use pip to download zappa's dependencies. Copying from current venv causes issues with things like PyYAML that installs as yaml
-        zappa_deps = self.get_deps_list('zappa')
+        # Use pip to download xrefzappa's dependencies. Copying from current venv causes issues with things like PyYAML that installs as yaml
+        zappa_deps = self.get_deps_list('xrefzappa')
         pkg_list = ['{0!s}=={1!s}'.format(dep, version) for dep, version in zappa_deps]
 
         # Need to manually add setuptools
@@ -542,7 +542,7 @@ class Zappa(object):
             )
 
         # First, do the project..
-        temp_project_path = tempfile.mkdtemp(prefix='zappa-project')
+        temp_project_path = tempfile.mkdtemp(prefix='xrefzappa-project')
 
         if not slim_handler:
             # Slim handler does not take the project files.
@@ -608,7 +608,7 @@ class Zappa(object):
 
         # Then, do site site-packages..
         egg_links = []
-        temp_package_path = tempfile.mkdtemp(prefix='zappa-packages')
+        temp_package_path = tempfile.mkdtemp(prefix='xrefzappa-packages')
         if os.sys.platform == 'win32':
             site_packages = os.path.join(venv, 'Lib', 'site-packages')
         else:
@@ -1332,7 +1332,7 @@ class Zappa(object):
                             timeout
                          ):
         """
-        The `zappa deploy` functionality for ALB infrastructure.
+        The `xrefzappa deploy` functionality for ALB infrastructure.
         """
         if not alb_vpc_config:
             raise EnvironmentError('When creating an ALB, alb_vpc_config must be filled out in zappa_settings.')
@@ -1352,7 +1352,7 @@ class Zappa(object):
             SecurityGroups=alb_vpc_config["SecurityGroupIds"],
             # TODO: Scheme can also be "internal" we need to add a new option for this.
             Scheme="internet-facing",
-            # TODO: Tags might be a useful means of stock-keeping zappa-generated assets.
+            # TODO: Tags might be a useful means of stock-keeping xrefzappa-generated assets.
             #Tags=[],
             Type="application",
             # TODO: can be ipv4 or dualstack (for ipv4 and ipv6) ipv4 is required for internal Scheme.
@@ -1441,7 +1441,7 @@ class Zappa(object):
 
     def undeploy_lambda_alb(self, lambda_name):
         """
-        The `zappa undeploy` functionality for ALB infrastructure.
+        The `xrefzappa undeploy` functionality for ALB infrastructure.
         """
         print("Undeploying ALB infrastructure...")
 
@@ -2564,16 +2564,16 @@ class Zappa(object):
             updated = True
 
         # create or update the role's policies if needed
-        policy = self.iam.RolePolicy(self.role_name, 'zappa-permissions')
+        policy = self.iam.RolePolicy(self.role_name, 'xrefzappa-permissions')
         try:
             if policy.policy_document != attach_policy_obj:
-                print("Updating zappa-permissions policy on " + self.role_name + " IAM Role.")
+                print("Updating xrefzappa-permissions policy on " + self.role_name + " IAM Role.")
 
                 policy.put(PolicyDocument=self.attach_policy)
                 updated = True
 
         except botocore.client.ClientError:
-            print("Creating zappa-permissions policy on " + self.role_name + " IAM Role.")
+            print("Creating xrefzappa-permissions policy on " + self.role_name + " IAM Role.")
             policy.put(PolicyDocument=self.attach_policy)
             updated = True
 
@@ -2784,7 +2784,7 @@ class Zappa(object):
         name = event.get('name', function)
         if name != function:
             # a custom event name has been provided, make sure function name is included as postfix,
-            # otherwise zappa's handler won't be able to locate the function.
+            # otherwise xrefzappa's handler won't be able to locate the function.
             name = '{}-{}'.format(name, function)
         if index:
             # to ensure unique cloudwatch rule names in the case of multiple expressions
@@ -2888,8 +2888,8 @@ class Zappa(object):
             event_source = event.get('event_source', function)
             service = self.service_from_arn(event_source['arn'])
             # DynamoDB and Kinesis streams take quite a while to setup after they are created and do not need to be
-            # re-scheduled when a new Lambda function is deployed. Therefore, they should not be removed during zappa
-            # update or zappa schedule.
+            # re-scheduled when a new Lambda function is deployed. Therefore, they should not be removed during xrefzappa
+            # update or xrefzappa schedule.
             if service not in excluded_source_services:
                 remove_event_source(
                     event_source,
@@ -2933,7 +2933,7 @@ class Zappa(object):
                 "events": ["sns:Publish"]
             },
             lambda_arn=lambda_arn,
-            target_function="zappa.asynchronous.route_task",
+            target_function="xrefzappa.asynchronous.route_task",
             boto_session=self.boto_session
         )
         return topic_arn

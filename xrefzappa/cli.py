@@ -190,8 +190,8 @@ class ZappaCLI(object):
         parser = argparse.ArgumentParser(description=desc)
         parser.add_argument(
             '-v', '--version', action='version',
-            version=pkg_resources.get_distribution("zappa").version,
-            help='Print the zappa version'
+            version=pkg_resources.get_distribution("xrefzappa").version,
+            help='Print the xrefzappa version'
         )
         parser.add_argument(
             '--color', default='auto', choices=['auto','never','always']
@@ -580,9 +580,9 @@ class ZappaCLI(object):
 
             command_tail = self.vargs.get('command_rest')
             if len(command_tail) > 1:
-                command = " ".join(command_tail) # ex: zappa manage dev "shell --version"
+                command = " ".join(command_tail) # ex: xrefzappa manage dev "shell --version"
             else:
-                command = command_tail[0] # ex: zappa manage dev showmigrations admin
+                command = command_tail[0] # ex: xrefzappa manage dev showmigrations admin
 
             self.invoke(
                 command,
@@ -1174,7 +1174,7 @@ class ZappaCLI(object):
                 events = []
 
             keep_warm_rate = self.stage_config.get('keep_warm_expression', "rate(4 minutes)")
-            events.append({'name': 'zappa-keep-warm',
+            events.append({'name': 'xrefzappa-keep-warm',
                            'function': 'handler.keep_warm_callback',
                            'expression': keep_warm_rate,
                            'description': 'Zappa Keep Warm - {}'.format(self.lambda_name)})
@@ -1185,7 +1185,7 @@ class ZappaCLI(object):
             except botocore.exceptions.ClientError as e: # pragma: no cover
                 click.echo(click.style("Function does not exist", fg="yellow") + ", please " +
                            click.style("deploy", bold=True) + "first. Ex:" +
-                           click.style("zappa deploy {}.".format(self.api_stage), bold=True))
+                           click.style("xrefzappa deploy {}.".format(self.api_stage), bold=True))
                 sys.exit(-1)
 
             print("Scheduling..")
@@ -1244,7 +1244,7 @@ class ZappaCLI(object):
             function_response = self.zappa.lambda_client.get_function(FunctionName=self.lambda_name)
             function_arn = function_response['Configuration']['FunctionArn']
         except botocore.exceptions.ClientError as e: # pragma: no cover
-            raise ClickException("Function does not exist, you should deploy first. Ex: zappa deploy {}. "
+            raise ClickException("Function does not exist, you should deploy first. Ex: xrefzappa deploy {}. "
                   "Proceeding to unschedule CloudWatch based events.".format(self.api_stage))
 
         print("Unscheduling..")
@@ -1635,7 +1635,7 @@ class ZappaCLI(object):
         # Create Bucket
         click.echo("\nYour Zappa deployments will need to be uploaded to a " + click.style("private S3 bucket", bold=True)  + ".")
         click.echo("If you don't have a bucket yet, we'll create one for you too.")
-        default_bucket = "zappa-" + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(9))
+        default_bucket = "xrefzappa-" + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(9))
         while True:
             bucket = input("What do you want to call your bucket? (default '%s'): " % default_bucket) or default_bucket
 
@@ -1779,16 +1779,16 @@ class ZappaCLI(object):
 
         if global_deployment:
             click.echo("\n" + click.style("Done", bold=True) + "! You can also " + click.style("deploy all", bold=True)  + " by executing:\n")
-            click.echo(click.style("\t$ zappa deploy --all", bold=True))
+            click.echo(click.style("\t$ xrefzappa deploy --all", bold=True))
 
             click.echo("\nAfter that, you can " + click.style("update", bold=True) + " your application code with:\n")
-            click.echo(click.style("\t$ zappa update --all", bold=True))
+            click.echo(click.style("\t$ xrefzappa update --all", bold=True))
         else:
             click.echo("\n" + click.style("Done", bold=True) + "! Now you can " + click.style("deploy", bold=True)  + " your Zappa application by executing:\n")
-            click.echo(click.style("\t$ zappa deploy %s" % env, bold=True))
+            click.echo(click.style("\t$ xrefzappa deploy %s" % env, bold=True))
 
             click.echo("\nAfter that, you can " + click.style("update", bold=True) + " your application code with:\n")
-            click.echo(click.style("\t$ zappa update %s" % env, bold=True))
+            click.echo(click.style("\t$ xrefzappa update %s" % env, bold=True))
 
         click.echo("\nTo learn more, check out our project page on " + click.style("GitHub", bold=True) +
                    " here: " + click.style("https://github.com/Miserlou/Zappa", fg="cyan", bold=True))
@@ -1984,12 +1984,12 @@ class ZappaCLI(object):
         Print a warning if there's a new Zappa version available.
         """
         try:
-            version = pkg_resources.require("zappa")[0].version
+            version = pkg_resources.require("xrefzappa")[0].version
             updateable = check_new_version_available(version)
             if updateable:
                 click.echo(click.style("Important!", fg="yellow", bold=True) +
                            " A new version of " + click.style("Zappa", bold=True) + " is available!")
-                click.echo("Upgrade with: " + click.style("pip install zappa --upgrade", bold=True))
+                click.echo("Upgrade with: " + click.style("pip install xrefzappa --upgrade", bold=True))
                 click.echo("Visit the project page on GitHub to see the latest changes: " +
                            click.style("https://github.com/Miserlou/Zappa", bold=True))
         except Exception as e: # pragma: no cover
@@ -2040,7 +2040,7 @@ class ZappaCLI(object):
         self.lambda_name = slugify.slugify(self.project_name + '-' + self.api_stage)
 
         # Load stage-specific settings
-        self.s3_bucket_name = self.stage_config.get('s3_bucket', "zappa-" + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(9)))
+        self.s3_bucket_name = self.stage_config.get('s3_bucket', "xrefzappa-" + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(9)))
         self.vpc_config = self.stage_config.get('vpc_config', {})
         self.memory_size = self.stage_config.get('memory_size', 512)
         self.app_function = self.stage_config.get('app_function', None)
@@ -2149,7 +2149,7 @@ class ZappaCLI(object):
             and not os.path.isfile(zs_yml) \
             and not os.path.isfile(zs_yaml) \
             and not os.path.isfile(zs_toml):
-            raise ClickException("Please configure a zappa_settings file or call `zappa init`.")
+            raise ClickException("Please configure a zappa_settings file or call `xrefzappa init`.")
 
         # Prefer JSON
         if os.path.isfile(zs_json):
@@ -2171,7 +2171,7 @@ class ZappaCLI(object):
         if not settings_file:
             settings_file = self.get_json_or_yaml_settings()
         if not os.path.isfile(settings_file):
-            raise ClickException("Please configure your zappa_settings file or call `zappa init`.")
+            raise ClickException("Please configure your zappa_settings file or call `xrefzappa init`.")
 
         path, ext = os.path.splitext(settings_file)
         if ext == '.yml' or ext == '.yaml':
@@ -2652,7 +2652,7 @@ class ZappaCLI(object):
         """
 
         namespace_collisions = [
-            "zappa.", "wsgi.", "middleware.", "handler.", "util.", "letsencrypt.", "cli."
+            "xrefzappa.", "wsgi.", "middleware.", "handler.", "util.", "letsencrypt.", "cli."
         ]
         for namespace_collision in namespace_collisions:
             if item.startswith(namespace_collision):

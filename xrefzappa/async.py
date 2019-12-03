@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 import warnings
 
-warnings.warn('Module "zappa.async" is deprecated; please use "zappa.asynchronous" instead.', category=DeprecationWarning)
+warnings.warn('Module "xrefzappa.async" is deprecated; please use "xrefzappa.asynchronous" instead.', category=DeprecationWarning)
 from .asynchronous import *

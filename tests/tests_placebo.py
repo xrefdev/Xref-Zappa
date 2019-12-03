@@ -7,10 +7,10 @@ import unittest
 
 from .utils import placebo_session
 
-from zappa.cli import ZappaCLI
-from zappa.handler import LambdaHandler
-from zappa.utilities import (add_event_source, remove_event_source)
-from zappa.core import Zappa
+from xrefzappa.cli import ZappaCLI
+from xrefzappa.handler import LambdaHandler
+from xrefzappa.utilities import (add_event_source, remove_event_source)
+from xrefzappa.core import Zappa
 
 
 def random_string(length):
@@ -230,7 +230,7 @@ class TestZappa(unittest.TestCase):
                     u'account': u'72333333333',
                     u'region': u'us-east-1',
                     u'detail': {},
-                    u'command': u'zappa.asynchronous.route_lambda_task',
+                    u'command': u'xrefzappa.asynchronous.route_lambda_task',
                     u'task_path': u'tests.test_app.async_me',
                     u'args': [u'xxx'],
                     u'kwargs': {},
@@ -318,7 +318,7 @@ class TestZappa(unittest.TestCase):
                         u'Signature': u'EXAMPLE',
                         u'SigningCertUrl': u'EXAMPLE',
                         u'MessageId': u'95df01b4-ee98-5cb9-9903-4c221d41eb5e',
-                        u'Message': u'{"args": ["arg1", "arg2"], "command": "zappa.asynchronous.route_sns_task", '
+                        u'Message': u'{"args": ["arg1", "arg2"], "command": "xrefzappa.asynchronous.route_sns_task", '
                                     u'"task_path": "test_settings.aws_async_sns_event", "kwargs": {"arg3": "varg3"}}',
                         u'Subject': u'TestInvoke',
                         u'Type': u'Notification',

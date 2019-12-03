@@ -34,7 +34,7 @@ Finally, configure your `zappa_settings.json` to use this domain and key:
 {
     "dev": {
     ...
-       "domain": "test.zappa.io", // Your target domain
+       "domain": xrefzappa, // Your target domain
        "lets_encrypt_key": "account.key", // Path to account key
     ...
     }

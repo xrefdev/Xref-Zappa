@@ -2,7 +2,7 @@ import os
 import sys
 from setuptools import setup
 from io import open
-from zappa import __version__
+from xrefzappa import __version__
 
 with open('README.md') as readme_file:
     long_description = readme_file.read()
@@ -23,10 +23,31 @@ with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as f:
 with open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')) as f:
     test_required = f.read().splitlines()
 
+
+def get_package():
+    filename = os.path.join(
+        os.path.dirname(__file__), 'dist',
+        'xref_zappa-{}.tar.gz'.format(__version__)
+    )
+    return filename
+
+
+if sys.argv[-1] == 'publish':
+    print('Publishing the the package on gemfury:')
+    os.system('fury push {} --as xref'.format(get_package()))
+    sys.exit()
+
+if sys.argv[-1] == 'tag':
+    print('Tagging the version on github:')
+    os.system('git tag -a {} -m "version {}"'.format(__version__, __version__))
+    os.system('git push --tags')
+    sys.exit()
+
+
 setup(
-    name='zappa',
+    name='xrefzappa',
     version=__version__,
-    packages=['zappa'],
+    packages=['xrefzappa'],
     install_requires=required,
     tests_require=test_required,
     test_suite='nose.collector',
@@ -40,8 +61,8 @@ setup(
     author_email='rich@openwatch.net',
     entry_points={
         'console_scripts': [
-            'zappa=zappa.cli:handle',
-            'z=zappa.cli:handle',
+            'xrefzappa=xrefzappa.cli:handle',
+            'z=xrefzappa.cli:handle',
         ]
     },
     classifiers=[

@@ -190,7 +190,7 @@ def get_runtime_from_python_version():
 
 def get_topic_name(lambda_name):
     """ Topic name generation """
-    return '%s-zappa-async' % lambda_name
+    return '%s-xrefzappa-async' % lambda_name
 
 ##
 # Event sources / Kappa

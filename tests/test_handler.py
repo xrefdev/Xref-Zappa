@@ -1,8 +1,8 @@
 from mock import Mock
 import sys
 import unittest
-from zappa.handler import LambdaHandler
-from zappa.utilities import merge_headers
+from xrefzappa.handler import LambdaHandler
+from xrefzappa.utilities import merge_headers
 
 
 def no_args():

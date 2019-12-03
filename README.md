@@ -540,7 +540,7 @@ Optionally you can add [SNS message filters](http://docs.aws.amazon.com/sns/late
                 "event_source": {
                     "arn":  "arn:aws:sns:::your-event-topic-arn",
                     "filters": {
-                        "interests": ["python", "aws", "zappa"],
+                        "interests": ["python", "aws", xrefzappa],
                         "version": ["1.0"]
                     },
                     ...

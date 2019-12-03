@@ -28,7 +28,7 @@ BINARY_METHODS = [
 
 
 def create_wsgi_request(event_info,
-                        server_name='zappa',
+                        server_name='xrefzappa',
                         script_name=None,
                         trailing_slash=True,
                         binary_support=False,

@@ -20,20 +20,20 @@ import uuid
 from click.globals import resolve_color_default
 from click.exceptions import ClickException
 
-from zappa.cli import ZappaCLI, shamelessly_promote, disable_click_colors
-from zappa.core import ALB_LAMBDA_ALIAS
-from zappa.ext.django_zappa import get_django_wsgi
-from zappa.letsencrypt import get_cert_and_update_domain, create_domain_key, create_domain_csr, \
+from xrefzappa.cli import ZappaCLI, shamelessly_promote, disable_click_colors
+from xrefzappa.core import ALB_LAMBDA_ALIAS
+from xrefzappa.ext.django_zappa import get_django_wsgi
+from xrefzappa.letsencrypt import get_cert_and_update_domain, create_domain_key, create_domain_csr, \
     create_chained_certificate, cleanup, parse_account_key, parse_csr, sign_certificate, encode_certificate,\
     register_account, verify_challenge, gettempdir
-from zappa.utilities import (
+from xrefzappa.utilities import (
     conflicts_with_a_neighbouring_module, contains_python_files_or_subdirs,
     detect_django_settings, detect_flask_apps, get_venv_from_python_version,
     human_size, InvalidAwsLambdaName, parse_s3_url, string_to_timestamp,
     titlecase_keys, is_valid_bucket_name, validate_name
 )
-from zappa.wsgi import create_wsgi_request, common_log
-from zappa.core import Zappa, ASSUME_POLICY, ATTACH_POLICY
+from xrefzappa.wsgi import create_wsgi_request, common_log
+from xrefzappa.core import Zappa, ASSUME_POLICY, ATTACH_POLICY
 
 if sys.version_info[0] < 3:
     from cStringIO import StringIO as OldStringIO
@@ -78,7 +78,7 @@ class TestZappa(unittest.TestCase):
         disable_click_colors()
         assert resolve_color_default() is False
 
-    @mock.patch('zappa.core.find_packages')
+    @mock.patch('xrefzappa.core.find_packages')
     @mock.patch('os.remove')
     def test_copy_editable_packages(self, mock_remove, mock_find_packages):
         virtual_env = os.environ.get("VIRTUAL_ENV")
@@ -99,9 +99,9 @@ class TestZappa(unittest.TestCase):
 
             z = Zappa()
             mock_open = mock.mock_open(read_data=egg_path.encode("utf-8"))
-            with mock.patch("zappa.core.open", mock_open), \
+            with mock.patch("xrefzappa.core.open", mock_open), \
                     mock.patch("glob.glob") as mock_glob, \
-                    mock.patch("zappa.core.copytree") as mock_copytree:
+                    mock.patch("xrefzappa.core.copytree") as mock_copytree:
                 # we use glob.glob to get the egg-links in the temp packages
                 # directory
                 mock_glob.return_value = [temp_egg_link]
@@ -129,7 +129,7 @@ class TestZappa(unittest.TestCase):
         # mock the pkg_resources.WorkingSet() to include a known package in lambda_packages so that the code
         # for zipping pre-compiled packages gets called
         mock_installed_packages = {'psycopg2': '2.6.1'}
-        with mock.patch('zappa.core.Zappa.get_installed_packages', return_value=mock_installed_packages):
+        with mock.patch('xrefzappa.core.Zappa.get_installed_packages', return_value=mock_installed_packages):
             z = Zappa(runtime='python2.7')
             path = z.create_lambda_zip(handler_file=os.path.realpath(__file__))
             self.assertTrue(os.path.isfile(path))
@@ -142,7 +142,7 @@ class TestZappa(unittest.TestCase):
 
         # mock with a known manylinux wheel package so that code for downloading them gets invoked
         mock_installed_packages = { 'cffi' : '1.10.0' }
-        with mock.patch('zappa.core.Zappa.get_installed_packages', return_value = mock_installed_packages):
+        with mock.patch('xrefzappa.core.Zappa.get_installed_packages', return_value = mock_installed_packages):
             z = Zappa(runtime='python2.7')
             path = z.create_lambda_zip(handler_file=os.path.realpath(__file__))
             self.assertTrue(os.path.isfile(path))
@@ -155,7 +155,7 @@ class TestZappa(unittest.TestCase):
 
         # mock with a known manylinux wheel package so that code for downloading them gets invoked
         mock_installed_packages = {'psycopg2': '2.7.1'}
-        with mock.patch('zappa.core.Zappa.get_installed_packages', return_value=mock_installed_packages):
+        with mock.patch('xrefzappa.core.Zappa.get_installed_packages', return_value=mock_installed_packages):
             z = Zappa(runtime='python3.6')
             path = z.create_lambda_zip(handler_file=os.path.realpath(__file__))
             self.assertTrue(os.path.isfile(path))
@@ -168,7 +168,7 @@ class TestZappa(unittest.TestCase):
 
         # mock with a known manylinux wheel package so that code for downloading them gets invoked
         mock_installed_packages = {'psycopg2': '2.7.6'}
-        with mock.patch('zappa.core.Zappa.get_installed_packages', return_value=mock_installed_packages):
+        with mock.patch('xrefzappa.core.Zappa.get_installed_packages', return_value=mock_installed_packages):
             z = Zappa(runtime='python3.7')
             path = z.create_lambda_zip(handler_file=os.path.realpath(__file__))
             self.assertTrue(os.path.isfile(path))
@@ -586,7 +586,7 @@ class TestZappa(unittest.TestCase):
         le = common_log(environ, response, response_time=False)
 
     def test_wsgi_multipart(self):
-        #event = {u'body': u'LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS03Njk1MjI4NDg0Njc4MTc2NTgwNjMwOTYxDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9Im15c3RyaW5nIg0KDQpkZGQNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tNzY5NTIyODQ4NDY3ODE3NjU4MDYzMDk2MS0tDQo=', u'headers': {u'Content-Type': u'multipart/form-data; boundary=---------------------------7695228484678176580630961', u'Via': u'1.1 38205a04d96d60185e88658d3185ccee.cloudfront.net (CloudFront)', u'Accept-Language': u'en-US,en;q=0.5', u'Accept-Encoding': u'gzip, deflate, br', u'CloudFront-Is-SmartTV-Viewer': u'false', u'CloudFront-Forwarded-Proto': u'https', u'X-Forwarded-For': u'71.231.27.57, 104.246.180.51', u'CloudFront-Viewer-Country': u'US', u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0', u'Host': u'xo2z7zafjh.execute-api.us-east-1.amazonaws.com', u'X-Forwarded-Proto': u'https', u'Cookie': u'zappa=AQ4', u'CloudFront-Is-Tablet-Viewer': u'false', u'X-Forwarded-Port': u'443', u'Referer': u'https://xo8z7zafjh.execute-api.us-east-1.amazonaws.com/former/post', u'CloudFront-Is-Mobile-Viewer': u'false', u'X-Amz-Cf-Id': u'31zxcUcVyUxBOMk320yh5NOhihn5knqrlYQYpGGyOngKKwJb0J0BAQ==', u'CloudFront-Is-Desktop-Viewer': u'true'}, u'params': {u'parameter_1': u'post'}, u'method': u'POST', u'query': {}}
+        #event = {u'body': u'LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS03Njk1MjI4NDg0Njc4MTc2NTgwNjMwOTYxDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9Im15c3RyaW5nIg0KDQpkZGQNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tNzY5NTIyODQ4NDY3ODE3NjU4MDYzMDk2MS0tDQo=', u'headers': {u'Content-Type': u'multipart/form-data; boundary=---------------------------7695228484678176580630961', u'Via': u'1.1 38205a04d96d60185e88658d3185ccee.cloudfront.net (CloudFront)', u'Accept-Language': u'en-US,en;q=0.5', u'Accept-Encoding': u'gzip, deflate, br', u'CloudFront-Is-SmartTV-Viewer': u'false', u'CloudFront-Forwarded-Proto': u'https', u'X-Forwarded-For': u'71.231.27.57, 104.246.180.51', u'CloudFront-Viewer-Country': u'US', u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0', u'Host': u'xo2z7zafjh.execute-api.us-east-1.amazonaws.com', u'X-Forwarded-Proto': u'https', u'Cookie': u'xrefzappa=AQ4', u'CloudFront-Is-Tablet-Viewer': u'false', u'X-Forwarded-Port': u'443', u'Referer': u'https://xo8z7zafjh.execute-api.us-east-1.amazonaws.com/former/post', u'CloudFront-Is-Mobile-Viewer': u'false', u'X-Amz-Cf-Id': u'31zxcUcVyUxBOMk320yh5NOhihn5knqrlYQYpGGyOngKKwJb0J0BAQ==', u'CloudFront-Is-Desktop-Viewer': u'true'}, u'params': {u'parameter_1': u'post'}, u'method': u'POST', u'query': {}}
 
         event = {
             u'body': u'LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS03Njk1MjI4NDg0Njc4MTc2NTgwNjMwOTYxDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9Im15c3RyaW5nIg0KDQpkZGQNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tNzY5NTIyODQ4NDY3ODE3NjU4MDYzMDk2MS0tDQo=',
@@ -616,7 +616,7 @@ class TestZappa(unittest.TestCase):
             u'queryStringParameters': None,
             u'httpMethod': u'POST',
             u'pathParameters': None,
-            u'headers': {u'Content-Type': u'multipart/form-data; boundary=---------------------------7695228484678176580630961', u'Via': u'1.1 38205a04d96d60185e88658d3185ccee.cloudfront.net (CloudFront)', u'Accept-Language': u'en-US,en;q=0.5', u'Accept-Encoding': u'gzip, deflate, br', u'CloudFront-Is-SmartTV-Viewer': u'false', u'CloudFront-Forwarded-Proto': u'https', u'X-Forwarded-For': u'71.231.27.57, 104.246.180.51', u'CloudFront-Viewer-Country': u'US', u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0', u'Host': u'xo2z7zafjh.execute-api.us-east-1.amazonaws.com', u'X-Forwarded-Proto': u'https', u'Cookie': u'zappa=AQ4', u'CloudFront-Is-Tablet-Viewer': u'false', u'X-Forwarded-Port': u'443', u'Referer': u'https://xo8z7zafjh.execute-api.us-east-1.amazonaws.com/former/post', u'CloudFront-Is-Mobile-Viewer': u'false', u'X-Amz-Cf-Id': u'31zxcUcVyUxBOMk320yh5NOhihn5knqrlYQYpGGyOngKKwJb0J0BAQ==', u'CloudFront-Is-Desktop-Viewer': u'true'},
+            u'headers': {u'Content-Type': u'multipart/form-data; boundary=---------------------------7695228484678176580630961', u'Via': u'1.1 38205a04d96d60185e88658d3185ccee.cloudfront.net (CloudFront)', u'Accept-Language': u'en-US,en;q=0.5', u'Accept-Encoding': u'gzip, deflate, br', u'CloudFront-Is-SmartTV-Viewer': u'false', u'CloudFront-Forwarded-Proto': u'https', u'X-Forwarded-For': u'71.231.27.57, 104.246.180.51', u'CloudFront-Viewer-Country': u'US', u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0', u'Host': u'xo2z7zafjh.execute-api.us-east-1.amazonaws.com', u'X-Forwarded-Proto': u'https', u'Cookie': u'xrefzappa=AQ4', u'CloudFront-Is-Tablet-Viewer': u'false', u'X-Forwarded-Port': u'443', u'Referer': u'https://xo8z7zafjh.execute-api.us-east-1.amazonaws.com/former/post', u'CloudFront-Is-Mobile-Viewer': u'false', u'X-Amz-Cf-Id': u'31zxcUcVyUxBOMk320yh5NOhihn5knqrlYQYpGGyOngKKwJb0J0BAQ==', u'CloudFront-Is-Desktop-Viewer': u'true'},
             u'stageVariables': None,
             u'path': u'/',
             }
@@ -655,7 +655,7 @@ class TestZappa(unittest.TestCase):
             u'queryStringParameters': None,
             u'httpMethod': u'POST',
             u'pathParameters': None,
-            u'headers': {u'Via': u'1.1 38205a04d96d60185e88658d3185ccee.cloudfront.net (CloudFront)', u'Accept-Language': u'en-US,en;q=0.5', u'Accept-Encoding': u'gzip, deflate, br', u'CloudFront-Is-SmartTV-Viewer': u'false', u'CloudFront-Forwarded-Proto': u'https', u'X-Forwarded-For': u'71.231.27.57, 104.246.180.51', u'CloudFront-Viewer-Country': u'US', u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0', u'Host': u'xo2z7zafjh.execute-api.us-east-1.amazonaws.com', u'X-Forwarded-Proto': u'https', u'Cookie': u'zappa=AQ4', u'CloudFront-Is-Tablet-Viewer': u'false', u'X-Forwarded-Port': u'443', u'Referer': u'https://xo8z7zafjh.execute-api.us-east-1.amazonaws.com/former/post', u'CloudFront-Is-Mobile-Viewer': u'false', u'X-Amz-Cf-Id': u'31zxcUcVyUxBOMk320yh5NOhihn5knqrlYQYpGGyOngKKwJb0J0BAQ==', u'CloudFront-Is-Desktop-Viewer': u'true'},
+            u'headers': {u'Via': u'1.1 38205a04d96d60185e88658d3185ccee.cloudfront.net (CloudFront)', u'Accept-Language': u'en-US,en;q=0.5', u'Accept-Encoding': u'gzip, deflate, br', u'CloudFront-Is-SmartTV-Viewer': u'false', u'CloudFront-Forwarded-Proto': u'https', u'X-Forwarded-For': u'71.231.27.57, 104.246.180.51', u'CloudFront-Viewer-Country': u'US', u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0', u'Host': u'xo2z7zafjh.execute-api.us-east-1.amazonaws.com', u'X-Forwarded-Proto': u'https', u'Cookie': u'xrefzappa=AQ4', u'CloudFront-Is-Tablet-Viewer': u'false', u'X-Forwarded-Port': u'443', u'Referer': u'https://xo8z7zafjh.execute-api.us-east-1.amazonaws.com/former/post', u'CloudFront-Is-Mobile-Viewer': u'false', u'X-Amz-Cf-Id': u'31zxcUcVyUxBOMk320yh5NOhihn5knqrlYQYpGGyOngKKwJb0J0BAQ==', u'CloudFront-Is-Desktop-Viewer': u'true'},
             u'stageVariables': None,
             u'path': u'/',
             u'isBase64Encoded': True
@@ -787,7 +787,7 @@ class TestZappa(unittest.TestCase):
         """
         Make sure Zappa uses settings in the proper order: JSON, TOML, YAML.
         """
-        tempdir = tempfile.mkdtemp(prefix="zappa-test-settings")
+        tempdir = tempfile.mkdtemp(prefix="xrefzappa-test-settings")
         shutil.copy("tests/test_one_env.json", tempdir + "/zappa_settings.json")
         shutil.copy("tests/test_settings.yml", tempdir + "/zappa_settings.yml")
         shutil.copy("tests/test_settings.yml", tempdir + "/zappa_settings.yaml")
@@ -974,7 +974,7 @@ class TestZappa(unittest.TestCase):
     #     self.assertRegexpMatches(error_msg, expected)
     #     sys.stderr = old_stderr
 
-    # @mock.patch('zappa.cli.ZappaCLI.dispatch_command')
+    # @mock.patch('xrefzappa.cli.ZappaCLI.dispatch_command')
     # def test_cli_invoke(self, _):
     #     zappa_cli = ZappaCLI()
     #     argv = '-s test_settings.json invoke '.split()
@@ -1023,7 +1023,7 @@ class TestZappa(unittest.TestCase):
     #         self.assertEquals(args['command_rest'], 'myapp.my_func')
 
 
-    # @mock.patch('zappa.cli.ZappaCLI.dispatch_command')
+    # @mock.patch('xrefzappa.cli.ZappaCLI.dispatch_command')
     # def test_cli_manage(self, _):
     #     zappa_cli = ZappaCLI()
     #     argv = '--settings test_settings.json manage'.split()
@@ -1289,7 +1289,7 @@ class TestZappa(unittest.TestCase):
 
     def test_certify_sanity_checks(self):
         """
-        Make sure 'zappa certify':
+        Make sure 'xrefzappa certify':
         * Errors out when a deployment hasn't taken place.
         * Writes errors when certificate settings haven't been specified.
         * Calls Zappa correctly for creates vs. updates.
@@ -1304,7 +1304,7 @@ class TestZappa(unittest.TestCase):
             try:
                 zappa_cli.certify()
             except AttributeError:
-                # Since zappa_cli.zappa isn't initialized, the certify() call
+                # Since zappa_cli.xrefzappa isn't initialized, the certify() call
                 # fails when it tries to inspect what Zappa has deployed.
                 pass
 
@@ -1770,8 +1770,8 @@ USE_TZ = True
         zappa_cli = ZappaCLI()
         zappa_cli.api_stage = 'ttt888'
 
-        with mock.patch('zappa.core.Zappa.load_credentials') as LoadCredentialsMock:
-            # load_credentials is set in ZappaCLI.handler; simulates 'zappa package'
+        with mock.patch('xrefzappa.core.Zappa.load_credentials') as LoadCredentialsMock:
+            # load_credentials is set in ZappaCLI.handler; simulates 'xrefzappa package'
             zappa_cli.load_credentials = False
             zappa_cli.load_settings('test_settings.json')
             zappa_cli.package()

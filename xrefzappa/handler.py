@@ -19,9 +19,9 @@ from werkzeug.wrappers import Response
 # This file may be copied into a project's root,
 # so handle both scenarios.
 try:
-    from zappa.middleware import ZappaWSGIMiddleware
-    from zappa.wsgi import create_wsgi_request, common_log
-    from zappa.utilities import merge_headers, parse_s3_url
+    from xrefzappa.middleware import ZappaWSGIMiddleware
+    from xrefzappa.wsgi import create_wsgi_request, common_log
+    from xrefzappa.utilities import merge_headers, parse_s3_url
 except ImportError as e:  # pragma: no cover
     from .middleware import ZappaWSGIMiddleware
     from .wsgi import create_wsgi_request, common_log
@@ -143,7 +143,7 @@ class LambdaHandler(object):
             # Django gets special treatment.
             else:
                 try:  # Support both for tests
-                    from zappa.ext.django_zappa import get_django_wsgi
+                    from xrefzappa.ext.django_zappa import get_django_wsgi
                 except ImportError:  # pragma: no cover
                     from django_zappa_app import get_django_wsgi
 
@@ -399,7 +399,7 @@ class LambdaHandler(object):
             from django.core import management
 
             try:  # Support both for tests
-                from zappa.ext.django_zappa import get_django_wsgi
+                from xrefzappa.ext.django_zappa import get_django_wsgi
             except ImportError as e:  # pragma: no cover
                 from django_zappa_app import get_django_wsgi
 
@@ -574,7 +574,7 @@ class LambdaHandler(object):
             print(e)
             exc_info = sys.exc_info()
             message = ('An uncaught exception happened while servicing this request. '
-                       'You can investigate this with the `zappa tail` command.')
+                       'You can investigate this with the `xrefzappa tail` command.')
 
             # If we didn't even build an app_module, just raise.
             if not settings.DJANGO_SETTINGS:
