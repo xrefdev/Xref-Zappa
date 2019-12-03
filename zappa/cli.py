@@ -190,7 +190,7 @@ class ZappaCLI(object):
         parser = argparse.ArgumentParser(description=desc)
         parser.add_argument(
             '-v', '--version', action='version',
-            version=pkg_resources.get_distribution("zappa").version,
+            version=pkg_resources.get_distribution("xrefzappa").version,
             help='Print the zappa version'
         )
         parser.add_argument(
