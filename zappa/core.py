@@ -1990,7 +1990,9 @@ class Zappa(object):
                 continue
             yield api
 
-    def undeploy_api_gateway(self, lambda_name, domain_name=None, base_path=None):
+    def undeploy_api_gateway(
+            self, lambda_name, domain_name=None, base_path=None, keep_base_path_mapping=False
+    ):
         """
         Delete a deployed REST API Gateway.
         """
@@ -2003,14 +2005,17 @@ class Zappa(object):
             # XXX - Remove Route53 smartly here?
             # XXX - This doesn't raise, but doesn't work either.
 
-            try:
-                self.apigateway_client.delete_base_path_mapping(
-                    domainName=domain_name,
-                    basePath='(none)' if base_path is None else base_path
-                )
-            except Exception as e:
-                # We may not have actually set up the domain.
-                pass
+            # help with migration to serverless
+            if keep_base_path_mapping is False:
+
+                try:
+                    self.apigateway_client.delete_base_path_mapping(
+                        domainName=domain_name,
+                        basePath='(none)' if base_path is None else base_path
+                    )
+                except Exception as e:
+                    # We may not have actually set up the domain.
+                    pass
 
         was_deleted = self.delete_stack(lambda_name, wait=True)
 

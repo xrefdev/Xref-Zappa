@@ -405,6 +405,11 @@ class ZappaCLI(object):
                   ' during the undeployment.'),
         )
         undeploy_parser.add_argument(
+            '--keep-base-path', action='store_true',
+            help=('Keeps the base path mapping of api gateway'
+                  ' during the undeployment.'),
+        )
+        undeploy_parser.add_argument(
             '-y', '--yes', action='store_true', help='Auto confirm yes.'
         )
 
@@ -603,7 +608,8 @@ class ZappaCLI(object):
         elif command == 'undeploy': # pragma: no cover
             self.undeploy(
                 no_confirm=self.vargs['yes'],
-                remove_logs=self.vargs['remove_logs']
+                remove_logs=self.vargs['remove_logs'],
+                keep_base_path_mapping=self.vargs['keep_base_path']
             )
         elif command == 'schedule': # pragma: no cover
             self.schedule()
@@ -1102,7 +1108,7 @@ class ZappaCLI(object):
             except SystemExit:
                 os._exit(130)
 
-    def undeploy(self, no_confirm=False, remove_logs=False):
+    def undeploy(self, no_confirm=False, remove_logs=False, keep_base_path_mapping=False):
         """
         Tear down an existing deployment.
         """
@@ -1130,7 +1136,8 @@ class ZappaCLI(object):
             gateway_id = self.zappa.undeploy_api_gateway(
                 self.lambda_name,
                 domain_name=domain_name,
-                base_path=base_path
+                base_path=base_path,
+                keep_base_path_mapping=keep_base_path_mapping
             )
 
         self.unschedule()  # removes event triggers, including warm up event.
